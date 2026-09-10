@@ -1,15 +1,14 @@
 package com.itacademy.dailyplanner.dao.impl;
 
-
 import com.itacademy.dailyplanner.dao.TaskDao;
 import com.itacademy.dailyplanner.domian.Task;
+import com.itacademy.dailyplanner.exception.DaoException;
 
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-// Реализация DAO — хранение в памяти
 public class InMemoryTaskDao implements TaskDao {
     private final Map<String, Task> storage = new ConcurrentHashMap<>();
 
@@ -21,7 +20,7 @@ public class InMemoryTaskDao implements TaskDao {
     @Override
     public void update(Task task) {
         if (!storage.containsKey(task.getId())) {
-            throw new IllegalArgumentException("Задача не найдена: " + task.getId());
+            throw new DaoException("Задача не найдена: " + task.getId());
         }
         storage.put(task.getId(), task);
     }

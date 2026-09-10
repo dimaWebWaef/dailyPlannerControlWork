@@ -1,21 +1,21 @@
 package com.itacademy.dailyplanner.app;
 
-
-import com.itacademy.dailyplanner.dao.impl.InMemoryTaskDao;
+import com.itacademy.dailyplanner.controller.PlannerController;
+import com.itacademy.dailyplanner.dao.impl.FileTaskDao;
 import com.itacademy.dailyplanner.domian.Task;
+import com.itacademy.dailyplanner.exception.ControllerException;
 import com.itacademy.dailyplanner.service.PlannerService;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 
-
 public class PlannerApp {
     public static void main(String[] args) {
+        String filePath = (args.length > 0) ? args[0] : "tasks.dat";
 
-        InMemoryTaskDao dao = new InMemoryTaskDao();
+        FileTaskDao dao = new FileTaskDao(filePath);
         PlannerService service = new PlannerService(dao);
+        PlannerController controller = new PlannerController(service);
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
@@ -24,33 +24,19 @@ public class PlannerApp {
 
             try {
                 switch (choice) {
-                    case "1":
-                        addTask(service, scanner);
-                        break;
-                    case "2":
-                        showTasksForDate(service, scanner);
-                        break;
-                    case "3":
-                        showAllTasks(service);
-                        break;
-                    case "4":
-                        completeTask(service, scanner);
-                        break;
-                    case "5":
-                        deleteTask(service, scanner);
-                        break;
-                    case "6":
-                        System.out.println(service.getStatistics());
-                        break;
-                    case "0":
+                    case "1" -> addTask(controller, scanner);
+                    case "2" -> showTasksForDate(controller, scanner);
+                    case "3" -> showAllTasks(controller);
+                    case "4" -> completeTask(controller, scanner);
+                    case "5" -> deleteTask(controller, scanner);
+                    case "6" -> System.out.println(controller.getStatistics());
+                    case "0" -> {
                         System.out.println("Пока!");
                         return;
-                    default:
-                        System.out.println("Неверная опция. Попробуйте снова.");
+                    }
+                    default -> System.out.println("Неверная опция. Попробуйте снова.");
                 }
-            } catch (DateTimeParseException e) {
-                System.out.println("Неверный формат даты. Используйте yyyy-MM-dd.");
-            } catch (IllegalArgumentException e) {
+            } catch (ControllerException e) {
                 System.out.println("Ошибка: " + e.getMessage());
             }
         }
@@ -68,22 +54,22 @@ public class PlannerApp {
         System.out.print("Выберите действие: ");
     }
 
-    private static void addTask(PlannerService service, Scanner scanner) {
+    private static void addTask(PlannerController controller, Scanner scanner) {
         System.out.print("Описание задачи: ");
         String desc = scanner.nextLine().trim();
         System.out.print("Дата (yyyy-MM-dd): ");
-        LocalDate date = LocalDate.parse(scanner.nextLine().trim());
+        String date = scanner.nextLine().trim();
         System.out.print("Приоритет (LOW / MEDIUM / HIGH): ");
-        Task.Priority priority = Task.Priority.valueOf(scanner.nextLine().trim().toUpperCase());
+        String priority = scanner.nextLine().trim();
 
-        Task task = service.createTask(desc, date, priority);
+        Task task = controller.addTask(desc, date, priority);
         System.out.println("Задача создана: " + task);
     }
 
-    private static void showTasksForDate(PlannerService service, Scanner scanner) {
+    private static void showTasksForDate(PlannerController controller, Scanner scanner) {
         System.out.print("Дата (yyyy-MM-dd): ");
-        LocalDate date = LocalDate.parse(scanner.nextLine().trim());
-        List<Task> tasks = service.getTasksForDate(date);
+        String date = scanner.nextLine().trim();
+        List<Task> tasks = controller.showTasksForDate(date);
 
         if (tasks.isEmpty()) {
             System.out.println("На эту дату задач нет.");
@@ -92,8 +78,8 @@ public class PlannerApp {
         }
     }
 
-    private static void showAllTasks(PlannerService service) {
-        List<Task> tasks = service.getAllTasks();
+    private static void showAllTasks(PlannerController controller) {
+        List<Task> tasks = controller.showAllTasks();
         if (tasks.isEmpty()) {
             System.out.println("Задач пока нет.");
         } else {
@@ -101,17 +87,17 @@ public class PlannerApp {
         }
     }
 
-    private static void completeTask(PlannerService service, Scanner scanner) {
+    private static void completeTask(PlannerController controller, Scanner scanner) {
         System.out.print("ID задачи: ");
         String taskId = scanner.nextLine().trim();
-        service.completeTask(taskId);
+        controller.completeTask(taskId);
         System.out.println("Задача отмечена выполненной.");
     }
 
-    private static void deleteTask(PlannerService service, Scanner scanner) {
+    private static void deleteTask(PlannerController controller, Scanner scanner) {
         System.out.print("ID задачи: ");
         String taskId = scanner.nextLine().trim();
-        service.deleteTask(taskId);
+        controller.deleteTask(taskId);
         System.out.println("Задача удалена.");
     }
 }

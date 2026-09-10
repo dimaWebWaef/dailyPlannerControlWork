@@ -10,15 +10,19 @@ public class Task {
     private Priority priority;
     private boolean completed;
 
-    // Перечисление приоритетов
     public enum Priority {
         LOW,
         MEDIUM,
         HIGH
     }
 
-    // Конструктор
+    // Существующий конструктор — создаёт невыполненную задачу
     public Task(String id, String description, LocalDate date, Priority priority) {
+        this(id, description, date, priority, false);
+    }
+
+    // Полный конструктор — нужен для восстановления задачи из файла
+    public Task(String id, String description, LocalDate date, Priority priority, boolean completed) {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("ID задачи не может быть пустым");
         }
@@ -36,17 +40,15 @@ public class Task {
         this.description = description;
         this.date = date;
         this.priority = priority;
-        this.completed = false;
+        this.completed = completed;
     }
 
-    // Геттеры
     public String getId() { return id; }
     public String getDescription() { return description; }
     public LocalDate getDate() { return date; }
     public Priority getPriority() { return priority; }
     public boolean isCompleted() { return completed; }
 
-    // Сеттеры с валидацией
     public void setDescription(String description) {
         if (description == null || description.isBlank()) {
             throw new IllegalArgumentException("Описание не может быть пустым");
@@ -61,7 +63,6 @@ public class Task {
         this.priority = priority;
     }
 
-    // Управление статусом
     public void markCompleted() { this.completed = true; }
     public void markPending() { this.completed = false; }
 
